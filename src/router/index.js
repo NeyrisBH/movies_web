@@ -10,11 +10,6 @@ const router = createRouter({
             component: HomeView
         },
         {
-            path: '/series-all',
-            name: 'series page',
-            component: () => import('../views/SeriesView.vue')
-        },
-        {
             path: '/series',
             name: 'series',
             component: () => import('../components/Series.vue')
