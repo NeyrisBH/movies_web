@@ -4,8 +4,6 @@
 
 <script>
 import Home from '../components/Home.vue';
-import Team from '../components/Team.vue';
-
     export default {
     data() {
         return {
@@ -13,9 +11,8 @@ import Team from '../components/Team.vue';
         };
     },
     components: {
-    Home,
-    Team
-}
+        Home,
+    }
 }
 </script>
 
