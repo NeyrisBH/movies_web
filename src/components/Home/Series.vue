@@ -1,5 +1,4 @@
 <template>
-    <!-- Team-->
     <section class="page-section bg-light" id="team">
         <h2>Series mas recientes</h2>
         <div v-if="loading" class="spinner-border text-primary" role="status">

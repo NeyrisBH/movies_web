@@ -12,7 +12,7 @@ const router = createRouter({
         {
             path: '/series',
             name: 'series',
-            component: () => import('../components/Series.vue')
+            component: () => import('../views/SeriesView.vue')
         }
     ]
 })
