@@ -46,7 +46,7 @@ import Series from './Series.vue';
 
 <style>
     .btn-group {
-        margin: 10% 3% 0 3%
+        margin: 100px 3% 0 3%
     }
 
     .btn-primary {

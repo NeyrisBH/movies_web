@@ -1,17 +1,11 @@
 <template>
     <nav class="navbar fixed-top navbar-expand-lg">
-        <div class="container-fluid">
-            <a>
+        <div class="container-fluid d-flex justify-content-center align-items-center">
+            <a class="icon-header">
                 <RouterLink to="/" class="navbar-brand">
                     <img src="../assets/images/logo.png" alt="">
                 </RouterLink>
             </a>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Buscar" aria-label="Search">
-                <button class="btn btn-outline-success me-2" type="submit">Buscar</button>
-                <RouterLink to="/series" class="btn btn-sm btn-outline-secondary" type="button">Series
-                </RouterLink>
-            </form>
         </div>
     </nav>
 </template>
@@ -25,14 +19,18 @@ export default {
 
 <style scoped>
 .navbar {
-    background-color: #ffffff;
+    background-color: #e4e4e4;
     max-height: 80px;
     font-weight: 500;
     font-size: medium;
 }
 
 .navbar-brand img {
-    max-width: 90px;
-    margin-left: 40px;
+    max-width: 150px;
+    max-height: 70px;
+}
+
+.container-fluid{
+    margin: 0;
 }
 </style>

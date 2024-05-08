@@ -1,12 +1,14 @@
 <template>
-    <!-- Team-->
     <section class="page-section bg-light" id="team">
-        <h2>Comics mas recientes</h2>
+        <h2>Comics más recientes</h2>
+        <form @submit.prevent="fetchComicsForTitle" class="d-flex" role="search">
+            <input v-model="inputTitle" class="form-control me-2" type="search" placeholder="Titulo inicia con..." aria-label="Search" style="margin-right: 8px;">
+        </form>
         <div v-if="loading" class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Cargando...</span>
         </div>
         <div class="row row-cols-1 row-cols-md-3 row-cols-lg-3" v-else>
-            <div class="col-md-4" v-for="comic in comics" :key="comic.id">
+            <div class="col-md-4" v-for="(comic, index) in visibleComics" :key="comic.id">
                 <div class="card mb-3">
                     <a :href="comic.urls[0].url" target="_blank">
                         <div class="card-body p-0">
@@ -22,27 +24,67 @@
                 </div>
             </div>
         </div>
+        <div v-if="hasMore">
+            <button @click="loadMore" class="btn btn-primary mt-3">Cargar más</button>
+        </div>
     </section>
 </template>
 
 <script>
-    import axios from 'axios';
+import axios from 'axios';
 
-    export default {
-        data() {
-            return {
-                comics: [],
-                title: "",
-                loading: true
-            };
+export default {
+    data() {
+        return {
+            comics: [],
+            visibleComics: [],
+            inputTitle: '',
+            loading: true,
+            pageSize: 12,
+            currentPage: 1
+        };
+    },
+    computed: {
+        hasMore() {
+            return this.visibleComics.length < this.comics.length;
+        }
+    },
+    mounted() {
+        this.fetchComics();
+    },
+    methods: {
+        async fetchComics() {
+            try {
+                const response = await axios.get('https://gateway.marvel.com/v1/public/comics', {
+                    params: {
+                        apikey: '776d27f4503f9642f702889fb1cb6be0',
+                        ts: '1',
+                        hash: '1d6f981361d6726e532b2ba8524bb31c',
+                        startYear: '2024',
+                        limit: '100',
+                        orderBy: '-modified'
+                    }
+                });
+                this.comics = response.data.data.results.filter(comic => {
+                    return comic.thumbnail.path !== "http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available";
+                });
+                this.updateVisibleComics();
+                this.loading = false;
+            } catch (error) {
+                console.error('Error al obtener los cómics:', error);
+            }
         },
-        mounted() {
-            // Llama a una función para cargar los cómics cuando el componente se monte
-            this.fetchComics();
+        cutDescripcion(descripcion) {
+            if (descripcion && descripcion.length > 100) {
+                return descripcion.slice(0, 100) + '...'
+            }
+            return descripcion;
         },
-        methods: {
-            async fetchComics() {
-                try {
+        async fetchComicsForTitle() {
+            try {
+                if (this.inputTitle.trim() === '') {
+                    await this.fetchComics();
+                } else {
                     const response = await axios.get('https://gateway.marvel.com/v1/public/comics', {
                         params: {
                             apikey: '776d27f4503f9642f702889fb1cb6be0',
@@ -50,26 +92,31 @@
                             hash: '1d6f981361d6726e532b2ba8524bb31c',
                             startYear: '2024',
                             limit: '100',
-                            orderBy: '-modified'
+                            orderBy: '-modified',
+                            titleStartsWith: this.inputTitle
                         }
                     });
                     this.comics = response.data.data.results.filter(comic => {
                         return comic.thumbnail.path !== "http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available";
                     });
+                    this.updateVisibleComics();
                     this.loading = false;
-                } catch (error) {
-                    console.error('Error al obtener los cómics:', error);
                 }
-            },
-
-            cutDescripcion(descripcion) {
-                if (descripcion && descripcion.length > 100) {
-                    return descripcion.slice(0, 100) + '...'
-                }
-                return descripcion;
-            },
+            } catch (error) {
+                console.error('Error al obtener los cómics:', error);
+            }
+        },
+        loadMore() {
+            this.currentPage++;
+            this.updateVisibleComics();
+        },
+        updateVisibleComics() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            const end = start + this.pageSize;
+            this.visibleComics = this.comics.slice(0, end);
         }
     }
+}
 </script>
 
 <style>
@@ -120,6 +167,10 @@
 
     .team-member:hover .card-img-top {
         transform: scale(1.05);
+    }
+
+    .d-flex {
+        margin-bottom: 30px;
     }
 
 

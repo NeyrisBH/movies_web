@@ -1,12 +1,14 @@
 <template>
-    <!-- Team-->
     <section class="page-section bg-light" id="team">
         <h2>Eventos mas recientes</h2>
+        <form @submit.prevent="fetchEventosForName" class="d-flex" role="search">
+            <input v-model="inputName" class="form-control me-2" type="search" placeholder="Titulo inicia con..." aria-label="Search" style="margin-right: 8px;">
+        </form>
         <div v-if="loading" class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Cargando...</span>
         </div>
         <div class="row row-cols-1 row-cols-md-3 row-cols-lg-3" v-else>
-            <div class="col-md-4" v-for="evento in eventos" :key="evento.id">
+            <div class="col-md-4" v-for="(evento, index) in visibleEventos" :key="evento.id">
                 <div class="card mb-3">
                     <a :href="evento.urls[0].url" target="_blank">
                         <div class="card-body p-0">
@@ -22,6 +24,9 @@
                 </div>
             </div>
         </div>
+        <div v-if="hasMore">
+            <button @click="loadMore" class="btn btn-primary mt-3">Cargar más</button>
+        </div>
     </section>
 </template>
 
@@ -33,8 +38,17 @@
             return {
                 eventos: [],
                 title: "",
-                loading: true
+                loading: true,
+                visibleEventos: [],
+                inputName: '',
+                pageSize: 12,
+                currentPage: 1
             };
+        },
+        computed: {
+            hasMore() {
+                return this.visibleEventos.length < this.eventos.length;
+            }
         },
         mounted() {
             // Llama a una función para cargar los cómics cuando el componente se monte
@@ -49,24 +63,58 @@
                             ts: '1',
                             hash: '1d6f981361d6726e532b2ba8524bb31c',
                             limit: '100',
-                            orderBy: '-modified'
+                            orderBy: '-modified',
                         }
                     });
                     this.eventos = response.data.data.results.filter(evento => {
                         return evento.thumbnail.path !== "http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available";
                     });
+                    this.updateVisibleEventos();
                     this.loading = false;
                 } catch (error) {
-                    console.error('Error al obtener los cómics:', error);
+                    console.error('Error al obtener los eventos:', error);
                 }
             },
-
             cutDescripcion(descripcion) {
                 if (descripcion && descripcion.length > 100) {
                     return descripcion.slice(0, 100) + '...'
                 }
                 return descripcion;
             },
+            async fetchEventosForName() {
+                try {
+                    if (this.inputName.trim() === '') {
+                        await this.fetchEventos();
+                    } else {
+                        const response = await axios.get('https://gateway.marvel.com/v1/public/events', {
+                            params: {
+                                apikey: '776d27f4503f9642f702889fb1cb6be0',
+                                ts: '1',
+                                hash: '1d6f981361d6726e532b2ba8524bb31c',
+                                limit: '100',
+                                orderBy: '-modified',
+                                nameStartsWith: this.inputName
+                            }
+                        });
+                        this.eventos = response.data.data.results.filter(evento => {
+                            return evento.thumbnail.path !== "http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available";
+                        });
+                        this.updateVisibleEventos();
+                        this.loading = false;
+                    }
+                } catch (error) {
+                    console.error('Error al obtener los eventos:', error);
+                }
+            },
+            loadMore() {
+                this.currentPage++;
+                this.updateVisibleEventos();
+            },
+            updateVisibleEventos() {
+                const start = (this.currentPage - 1) * this.pageSize;
+                const end = start + this.pageSize;
+                this.visibleEventos = this.eventos.slice(0, end);
+            }
         }
     }
 </script>
